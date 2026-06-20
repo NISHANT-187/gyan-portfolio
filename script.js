@@ -11,7 +11,12 @@ class TerminalResume {
     this.resizing = null;
 
     // New properties for themes and game
-    this.currentTheme = localStorage.getItem("theme") || "default";
+    const validTerminalThemes = ["default", "dracula", "nord", "solarized"];
+    let storedTheme = localStorage.getItem("terminal-theme");
+    if (!validTerminalThemes.includes(storedTheme)) {
+      storedTheme = "default";
+    }
+    this.currentTheme = storedTheme;
     this.projects = [];
     this.skills = {};
     this.fileSystem = {};
@@ -31,6 +36,12 @@ class TerminalResume {
     this.loadSkills();
     this.setupFileSystem();
     this.init();
+
+    // #region agent log
+    const __dbgT = (loc, msg, data, hypothesisId) => fetch('http://127.0.0.1:7807/ingest/a9733e84-3bfd-45f7-af81-24e4a8992d1e',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'809e1d'},body:JSON.stringify({sessionId:'809e1d',location:loc,message:msg,data,hypothesisId,timestamp:Date.now(),runId:'pre-fix'})}).catch(()=>{});
+    __dbgT('script.js:constructor', 'Terminal init theme check', {storedTheme,isValidTerminalTheme:validTerminalThemes.includes(storedTheme),appliedClass:this.terminal?.className,outputExists:!!this.output,inputExists:!!this.input}, 'D');
+    __dbgT('script.js:constructor', 'Terminal DOM audit', {themeModal:!!this.themeModal,projectsModal:!!this.projectsModal,skillsModal:!!this.skillsModal,themeToggle:!!this.themeToggle,contextMenu:!!this.contextMenu}, 'B');
+    // #endregion
   }
 
   init() {
@@ -41,6 +52,34 @@ class TerminalResume {
     document.querySelectorAll(".close-button").forEach((button) => {
       button.addEventListener("click", () => {
         this.closeModal(button.closest(".modal"));
+      });
+    });
+
+    // Terminal window control buttons
+    const terminalCloseBtn = document.getElementById("terminal-close");
+    if (terminalCloseBtn) {
+      terminalCloseBtn.addEventListener("click", () => {
+        if (window.self !== window.top) {
+          window.parent.postMessage("close-resume-modal", "*");
+        } else {
+          window.location.href = "index.html";
+        }
+      });
+    }
+
+    const terminalMaximizeBtn = document.getElementById("terminal-maximize");
+    if (terminalMaximizeBtn) {
+      terminalMaximizeBtn.addEventListener("click", () => {
+        this.terminal.classList.toggle("maximized");
+      });
+    }
+
+    // Click outside terminal modals to close them
+    document.querySelectorAll(".modal").forEach((modal) => {
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) {
+          this.closeModal(modal);
+        }
       });
     });
 
@@ -140,6 +179,19 @@ class TerminalResume {
 
     // Global keyboard shortcuts
     document.addEventListener("keydown", (e) => {
+      // Escape key to close active modal or the entire resume modal
+      if (e.key === "Escape") {
+        const activeModal = document.querySelector(".modal.active");
+        if (activeModal) {
+          this.closeModal(activeModal);
+        } else if (!this.gameActive) {
+          // If no inner modal is active and snake game is not running, close parent modal
+          if (window.self !== window.top) {
+            window.parent.postMessage("close-resume-modal", "*");
+          }
+        }
+      }
+      
       // Ctrl + Shift + H for horizontal split
       if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "h") {
         e.preventDefault();
@@ -438,7 +490,7 @@ class TerminalResume {
     const terminal = this.terminals.find((t) => t.input === inputElement);
     if (!terminal) return;
 
-    const command = inputElement.value.trim().toLowerCase();
+    const command = inputElement.value.trim();
     const outputElement = inputElement
       .closest(".terminal-content")
       .querySelector("[id^='output']");
@@ -448,8 +500,10 @@ class TerminalResume {
     terminal.historyIndex = -1;
     inputElement.value = "";
 
-    // Parse command and arguments
-    const [cmd, ...args] = command.split(" ");
+    // Parse command and arguments, filtering out extra whitespace
+    const parts = command.split(/\s+/).filter(part => part !== "");
+    const cmd = parts[0] ? parts[0].toLowerCase() : "";
+    const args = parts.slice(1);
 
     // Execute command
     switch (cmd) {
@@ -482,9 +536,24 @@ class TerminalResume {
         this.showSkillsVisualization();
         break;
       case "game":
+      case "snake":
         this.initGame();
         break;
+      case "theme":
+        const targetTheme = args[0] ? args[0].toLowerCase() : "";
+        const validTerminalThemes = ["default", "dracula", "nord", "solarized"];
+        if (!targetTheme) {
+          this.printToOutput(outputElement, "Usage: theme [default|dracula|nord|solarized]", "info");
+          this.printToOutput(outputElement, `Current theme: ${this.currentTheme}`, "info");
+        } else if (validTerminalThemes.includes(targetTheme)) {
+          this.handleThemeChange(targetTheme);
+          this.printToOutput(outputElement, `Theme changed to: ${targetTheme}`, "success");
+        } else {
+          this.printToOutput(outputElement, `Invalid theme. Available themes: default, dracula, nord, solarized`, "error");
+        }
+        break;
       case "pdf":
+      case "resume":
         this.generatePDF();
         break;
       case "linkedin-cover":
@@ -513,7 +582,7 @@ class TerminalResume {
       default:
         this.printToOutput(
           outputElement,
-          `Command not found: ${command}. Type 'help' for available commands.`,
+          `Command not found: '${cmd}'. Type 'help' for available commands.`,
           "error"
         );
     }
@@ -522,20 +591,20 @@ class TerminalResume {
   }
 
   printWelcomeMessage(outputElement = this.output) {
-    const asciiArt = `███╗   ███╗ █████╗ ██████╗ ██╗ ██████╗
-████╗ ████║██╔══██╗██╔══██╗██║██╔═══██╗
-██╔████╔██║███████║██████╔╝██║██║   ██║
-██║╚██╔╝██║██╔══██║██╔══██╗██║██║   ██║
-██║ ╚═╝ ██║██║  ██║██║  ██║██║╚██████╔╝
-╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝ ╚═════╝ `;
+    const asciiArt = `████████╗████████╗██████╗ ███╗   ███╗██╗███╗   ██╗ █████╗ ██╗     
+╚══██╔══╝██╔═════╝██╔══██╗████╗ ████║██║████╗  ██║██╔══██╗██║     
+   ██║   ███████╗ ██████╔╝██╔████╔██║██║██╔██╗ ██║███████║██║     
+   ██║   ██╔════╝ ██╔══██╗██║╚██╔╝██║██║██║╚██╗██║██╔══██║██║     
+   ██║   ████████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║██║  ██║███████╗
+   ╚═╝   ╚═══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝`;
 
-    const divider = "─────────────────────────────────────────────────";
+    const divider = "──────────────────────────────────────────────────────────────────";
 
     const welcome =
       this.wrapWithColor(asciiArt + "\n", "#d4843e") +
       this.wrapWithColor(divider + "\n", "#555555") +
       this.wrapWithColor(
-        "              Interactive Terminal Resume\n",
+        "                   Interactive Terminal Resume\n",
         "#888888"
       ) +
       this.wrapWithColor(
@@ -592,9 +661,9 @@ class TerminalResume {
       this.wrapWithColor("• skills-visual", "#98fb98") +
       " " +
       this.wrapWithColor("Show skills visualization\n", "#ffffff") +
-      this.wrapWithColor("• game", "#98fb98") +
-      "      " +
-      this.wrapWithColor("Play a mini-game\n", "#ffffff") +
+      this.wrapWithColor("• game/snake", "#98fb98") +
+      "    " +
+      this.wrapWithColor("Play a mini-game (Snake)\n", "#ffffff") +
       this.wrapWithColor("• matrix", "#98fb98") +
       "    " +
       this.wrapWithColor("Start Matrix digital rain effect\n", "#ffffff") +
@@ -604,9 +673,12 @@ class TerminalResume {
       this.wrapWithColor("• calc", "#98fb98") +
       "      " +
       this.wrapWithColor("Calculate mathematical expressions\n", "#ffffff") +
-      this.wrapWithColor("• pdf", "#98fb98") +
-      "       " +
-      this.wrapWithColor("Download resume as PDF\n", "#ffffff") +
+      this.wrapWithColor("• resume/pdf", "#98fb98") +
+      "  " +
+      this.wrapWithColor("Download professional PDF resume\n", "#ffffff") +
+      this.wrapWithColor("• theme", "#98fb98") +
+      "     " +
+      this.wrapWithColor("Change terminal theme [default|dracula|nord|solarized]\n", "#ffffff") +
       this.wrapWithColor("• linkedin-cover", "#98fb98") +
       " " +
       this.wrapWithColor("Generate LinkedIn cover image\n", "#ffffff");
@@ -651,7 +723,7 @@ ${this.wrapWithColor(
   "#ff8c00"
 )}
 ${this.wrapWithColor("│", "#ff8c00")} ${this.wrapWithColor(
-      "CS undergraduate (AI/ML) at KL University.               ",
+      "CS undergraduate at KL University.                      ",
       "#ffffff"
     )}
 ${this.wrapWithColor("│", "#ff8c00")} ${this.wrapWithColor(
@@ -826,7 +898,7 @@ ${this.wrapWithColor(
   "#ff8c00"
 )}
 ${this.wrapWithColor("│", "#ff8c00")}${this.wrapWithColor(
-      " B.Tech, Computer Science (AI/ML)  ",
+      " B.Tech, Computer Science          ",
       "#ffffff"
     )}${this.wrapWithColor("│", "#ff8c00")}
 ${this.wrapWithColor(
@@ -1040,9 +1112,11 @@ ${this.wrapWithColor("╰──────────────────�
 
   // Theme handling
   handleThemeChange(theme) {
-    this.terminal.className = `terminal theme-${theme}`;
-    localStorage.setItem("theme", theme);
-    this.currentTheme = theme;
+    const validTerminalThemes = ["default", "dracula", "nord", "solarized"];
+    const targetTheme = validTerminalThemes.includes(theme) ? theme : "default";
+    this.terminal.className = `terminal theme-${targetTheme}`;
+    localStorage.setItem("terminal-theme", targetTheme);
+    this.currentTheme = targetTheme;
     this.closeModal(this.themeModal);
   }
 
@@ -1143,14 +1217,44 @@ ${this.wrapWithColor("╰──────────────────�
     const outputElement = this.terminals[this.activeTerminal].input
       .closest(".terminal-content")
       .querySelector("[id^='output']");
-    this.printToOutput(outputElement, "Generating PDF resume...", "info");
-    // Placeholder for actual PDF generation
+    this.printToOutput(outputElement, "Preparing PDF resume download...", "info");
+    
     setTimeout(() => {
+      // Create and append the download button in the terminal output
+      const btnContainer = document.createElement("div");
+      btnContainer.style.margin = "10px 0";
+      
+      const downloadBtn = document.createElement("button");
+      downloadBtn.className = "download-button";
+      downloadBtn.innerHTML = '<i class="fas fa-file-download"></i> Download Nishant_Kumar_Resume.pdf';
+      
+      downloadBtn.addEventListener("click", () => {
+        const link = document.createElement("a");
+        link.href = "Nishant_Kumar_Resume.pdf";
+        link.download = "Nishant_Kumar_Resume.pdf";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+      
+      btnContainer.appendChild(downloadBtn);
+      outputElement.appendChild(btnContainer);
+      
       this.printToOutput(
         outputElement,
-        "PDF generation is not yet implemented.",
-        "error"
+        "PDF resume successfully generated and download started!",
+        "success"
       );
+      
+      // Auto-trigger download
+      const link = document.createElement("a");
+      link.href = "Nishant_Kumar_Resume.pdf";
+      link.download = "Nishant_Kumar_Resume.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      this.scrollToBottom(outputElement.closest(".terminal-content"));
     }, 1000);
   }
 
@@ -1761,12 +1865,12 @@ ${this.wrapWithColor("╰──────────────────�
     asciiArt.style.fontSize = "10px";
     asciiArt.style.fontFamily = "'Fira Code', monospace";
     asciiArt.style.lineHeight = "1";
-    asciiArt.innerHTML = `███╗   ███╗ █████╗ ██████╗ ██╗ ██████╗
-████╗ ████║██╔══██╗██╔══██╗██║██╔═══██╗
-██╔████╔██║███████║██████╔╝██║██║   ██║
-██║╚██╔╝██║██╔══██║██╔══██╗██║██║   ██║
-██║ ╚═╝ ██║██║  ██║██║  ██║██║╚██████╔╝
-╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝ ╚═════╝ `;
+    asciiArt.innerHTML = `████████╗████████╗██████╗ ███╗   ███╗██╗███╗   ██╗ █████╗ ██╗     
+╚══██╔══╝██╔═════╝██╔══██╗████╗ ████║██║████╗  ██║██╔══██╗██║     
+   ██║   ███████╗ ██████╔╝██╔████╔██║██║██╔██╗ ██║███████║██║     
+   ██║   ██╔════╝ ██╔══██╗██║╚██╔╝██║██║██║╚██╗██║██╔══██║██║     
+   ██║   ████████╗██║  ██║██║ ╚═╝ ██║██║██║ ╚████║██║  ██║███████╗
+   ╚═╝   ╚═══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚═╝╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝`;
     terminalContent.appendChild(asciiArt);
 
     // Add divider
