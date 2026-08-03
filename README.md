@@ -33,6 +33,13 @@ I am a highly driven **Computer Science Undergraduate** at **KL University**. I 
 
 ## 💼 Professional Experience
 
+### 🤖 AI-ML Virtual Intern
+**EduSkills Foundation ®** · Remote Internship | *Jun 2026 – Aug 2026*
+* Successfully completed an 8-week Google AI-ML Virtual Internship (120 Hours) supported by Google for Developers, AICTE, National Internship Portal, and APSCHE.
+* Learned fundamentals of AI & Machine Learning using Python, focusing on data preprocessing, feature engineering, model building, and evaluation.
+* Gained hands-on experience with core ML concepts and real-world AI application workflows.
+* Certificates: [View Internship Certificate](image/eduskills_certificate.jpg) | [View APSCHE Certificate](image/apsche_eduskills_certificate.jpg) | [Online Verification](https://certificate.eduskillsfoundation.org/verify/4147905dc6632fdf4d7e/4147905dc6632fdf4d7e)
+
 ### 🐝 Intern (Full Stack MERN Developer)
 **BeeSkilled** · Remote Internship | *May 2026 – Jun 2026*
 * Successfully completed a 6-week intensive MERN Stack development program.
@@ -43,6 +50,7 @@ I am a highly driven **Computer Science Undergraduate** at **KL University**. I 
 
 ## 🎓 Certifications
 
+* 🏆 **Vibe2Ship – India's Biggest Vibe Coding Hackathon** — *Coding Ninjas & Google for Developers* ([View Certificate](image/vibe2ship_certificate.jpg))
 * 🛠️ **Implement a Responsible Generative AI Solution** — *Microsoft Foundry*
 * 🤖 **Google AI Essentials** — *Google*
 * ⚡ **AI Skills Fest 2026** — *Skills Fest (Microsoft Badge)*
