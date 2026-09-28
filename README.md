@@ -1,6 +1,6 @@
-# Hi, I'm Nishant Kumar 👋
+# Hi, I'm Gyanendra Trivedi 👋
 ### Computer Science Undergraduate | Full-Stack Developer | IoT Enthusiast | Defence Technology Explorer
-🌐 Portfolio: https://my-portfolio-nishant.vercel.app/
+🌐 Portfolio: https://gyanendratrivedi.vercel.app/
 ---
 
 ## 👨‍💻 Profile Summary

@@ -979,6 +979,7 @@ body[data-theme="dark"] .job-desc i {
   width: 400px;
   height: 400px;
   object-fit: cover;
+  object-position: top;
   border: var(--border-width) solid var(--border);
   box-shadow: 8px 8px 0 var(--border);
   background: var(--accent);
@@ -2393,7 +2394,7 @@ body[data-theme="dark"] .map-popup-company span {
 
 .skills-grid-modern {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 2rem;
   max-width: 1600px;
   margin: 0 auto;
@@ -3845,43 +3846,43 @@ body[data-theme="dark"] .cert-btn:hover {
 }
 
 /* Discord Contact Card Styling */
-.contact-card.discord-card {
+.contact-card.phone-card {
   background: #5865F2 !important; /* Discord Blurple */
   transform: rotate(2deg);
 }
 
-.contact-card.discord-card i {
+.contact-card.phone-card i {
   color: #ffffff !important;
 }
 
-.contact-card.discord-card span {
+.contact-card.phone-card span {
   color: #ffffff !important;
 }
 
-.contact-card.discord-card:hover {
+.contact-card.phone-card:hover {
   transform: rotate(0deg) translateY(-10px);
   background: #5865F2 !important;
 }
 
-.contact-card.discord-card:hover i {
+.contact-card.phone-card:hover i {
   color: #ffffff !important;
 }
 
 /* Discord Sticky-note Stickers */
-.contact-card.discord-card::before {
+.contact-card.phone-card::before {
   transform: rotate(14deg);
 }
 
-.contact-card.discord-card:hover::before {
+.contact-card.phone-card:hover::before {
   transform: rotate(16deg) translateY(10px);
 }
 
-.contact-card.discord-card:hover::after {
+.contact-card.phone-card:hover::after {
   transform: rotate(2deg) translateY(10px);
 }
 
 /* Dark Mode support for Discord Card */
-body[data-theme="dark"] .contact-card.discord-card {
+body[data-theme="dark"] .contact-card.phone-card {
   background: #5865F2 !important;
 }
 

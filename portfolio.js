@@ -25,7 +25,6 @@ const dom = {
     resumeModalCloseBtn: document.getElementById('resume-modal-close-btn'),
     resumeTabBtns: document.querySelectorAll('.resume-tab-btn'),
     resumeTabPanels: document.querySelectorAll('.resume-tab-panel'),
-    terminalIframe: document.getElementById('terminal-iframe'),
     mapContainer: document.querySelector('.journey-map-container'),
     mapSkeleton: document.getElementById('map-skeleton'),
     mapError: document.getElementById('map-error'),
@@ -628,14 +627,8 @@ function initJourneyMap() {
                             {
                                 city: 'KL University, Vaddeswaram',
                                 company: 'Academic Projects',
-                                period: '2024 - 2028',
-                                role: 'Student Achievement Platform & OCMS'
-                            },
-                            {
-                                city: 'Personal Projects',
-                                company: 'Embedded, Gesture AI & Defence Tech',
-                                period: '2023 - 2026',
-                                role: 'NFCUnlock, SoundWave & Defence Arsenal'
+                                period: '2026 - 2030',
+                                role: 'FOODFLEET — Restaurant Management System'
                             }
                         ]
                     }
@@ -794,7 +787,7 @@ if (dom.discordCard) {
 }
 
 // Interactive Resume Modal Logic
-function openResumeModal(defaultTab = 'terminal') {
+function openResumeModal(defaultTab = 'visual') {
     if (!dom.resumeModal) return;
     dom.resumeModal.classList.add('active');
     dom.body.style.overflow = 'hidden';
@@ -805,7 +798,6 @@ function closeResumeModal() {
     if (!dom.resumeModal) return;
     dom.resumeModal.classList.remove('active');
     dom.body.style.overflow = '';
-    if (dom.terminalIframe) dom.terminalIframe.src = 'about:blank';
 }
 
 function switchResumeTab(tabName) {
@@ -824,13 +816,6 @@ function switchResumeTab(tabName) {
             panel.classList.remove('active');
         }
     });
-
-    if (tabName === 'terminal' && dom.terminalIframe) {
-        const targetSrc = dom.terminalIframe.getAttribute('data-src');
-        if (dom.terminalIframe.src !== window.location.origin + '/' + targetSrc && !dom.terminalIframe.src.endsWith(targetSrc)) {
-            dom.terminalIframe.src = targetSrc;
-        }
-    }
 }
 
 dom.resumeTabBtns.forEach(btn => {
@@ -870,15 +855,15 @@ window.addEventListener('keydown', (e) => {
     }
 });
 
-document.querySelectorAll('a[href="Nishant_Kumar_Resume.pdf"]').forEach(link => {
+document.querySelectorAll('a[href="Gyanendra_Trivedi_Resume.pdf"]').forEach(link => {
     link.addEventListener('click', (e) => {
         if (link.closest('#resume-modal')) return;
         e.preventDefault();
-        openResumeModal('pdf');
+        openResumeModal('visual');
     });
 });
 
-document.querySelectorAll('a[href="Nishant_Kumar_Resume.jpg"]').forEach(link => {
+document.querySelectorAll('a[href="Gyanendra_Trivedi_Resume.jpg"]').forEach(link => {
     link.addEventListener('click', (e) => {
         if (link.closest('#resume-modal')) return;
         e.preventDefault();
